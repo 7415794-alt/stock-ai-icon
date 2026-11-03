@@ -10,8 +10,10 @@
   <link rel="icon" type="image/png" href="icon-192.png">
   <link rel="apple-touch-icon" href="icon-192.png">
   <style>
-    html, body { margin: 0; height: 100%; background: #ffffff; }
-    iframe { border: 0; width: 100%; height: 100%; display: block; }
+    html, body { margin: 0; height: 100%; background: #ffffff; overflow: hidden; }
+    /* iframe을 아래로 길게 늘려서, 맨 아래 'Built with Streamlit · Fullscreen' 줄을 화면 밖으로 잘라냄 */
+    iframe { border: 0; width: 100%; height: calc(100% + var(--footer)); display: block; }
+    :root { --footer: 44px; }
   </style>
 </head>
 <body>
