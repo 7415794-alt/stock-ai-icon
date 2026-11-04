@@ -1,5 +1,5 @@
 // 앱 껍데기(아이콘, 첫 화면)만 저장해 두고, 분석은 항상 인터넷으로 받아옵니다.
-const CACHE = "stock-ai-v1";
+const CACHE = "stock-ai-v2";
 const SHELL = ["./", "index.html", "manifest.json", "icon-192.png", "icon-512.png"];
 
 self.addEventListener("install", (e) => {

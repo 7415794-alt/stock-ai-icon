@@ -3,9 +3,9 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <title>주식 AI 확률 분석</title>
+  <title>스톡시그널 - 주식 AI 확률 분석</title>
   <meta name="description" content="종목을 검색하면 AI가 상승·하락 확률을 분석해 드립니다.">
-  <meta name="theme-color" content="#181f38">
+  <meta name="theme-color" content="#030830">
   <meta name="google-adsense-account" content="ca-pub-4318202692681153">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" href="icon-192.png">
@@ -21,6 +21,15 @@
     #app { flex: 1; min-height: 0; overflow: hidden; }
     /* iframe을 아래로 길게 늘려서, 맨 아래 'Built with Streamlit · Fullscreen' 줄을 화면 밖으로 잘라냄 */
     iframe { border: 0; width: 100%; height: calc(100% + var(--footer)); display: block; }
+    /* 우측 하단 버전 표기 */
+    #ver { position: fixed; right: 8px; bottom: calc(6px + env(safe-area-inset-bottom)); z-index: 10;
+           font: 11px/1.4 -apple-system, "Segoe UI", "Malgun Gothic", sans-serif; color: #8a90a0;
+           background: rgba(255,255,255,.85); padding: 1px 6px; border-radius: 6px; pointer-events: none; }
+    /* 다시 불러오는 중 안내 */
+    #retry { position: fixed; left: 50%; top: 12px; transform: translateX(-50%); z-index: 10;
+             font: 13px/1.4 -apple-system, "Segoe UI", "Malgun Gothic", sans-serif; color: #fff;
+             background: rgba(3,8,48,.88); padding: 6px 12px; border-radius: 999px; white-space: nowrap; }
+    #retry[hidden] { display: none; }
   </style>
 </head>
 <body>
@@ -30,9 +39,11 @@
   </div>
   <div id="app">
     <!-- Streamlit Cloud 앱 주소. 바뀌면 여기만 고치세요. -->
-    <iframe src="https://stock-ai-7415794.streamlit.app/?embed=true"
-            title="주식 AI 확률 분석" allow="clipboard-write"></iframe>
+    <iframe id="frame" src="https://stock-ai-7415794.streamlit.app/?embed=true"
+            title="스톡시그널" allow="clipboard-write"></iframe>
   </div>
+  <div id="ver">(1.0.0v)</div>
+  <div id="retry" hidden>연결이 느려서 다시 불러오는 중…</div>
   <script>
     const AD_CLIENT = "ca-pub-4318202692681153";
     const AD_SLOT = "";    // 애드센스 승인 후 만든 광고 단위 번호 (예: "1234567890")
@@ -48,6 +59,28 @@
       document.head.appendChild(s);
       (window.adsbygoogle = window.adsbygoogle || []).push({});
     }
+
+    // 앱이 다 뜨면 app.py가 'stock-ai-ready' 신호를 보냄. 정해진 시간 안에 신호가 없으면 멈춘 것으로 보고 다시 불러옴
+    const APP_URL = "https://stock-ai-7415794.streamlit.app/?embed=true";
+    const frame = document.getElementById("frame"), retry = document.getElementById("retry");
+    let tries = 0, ready = false, timer;
+    function watch() {
+      clearTimeout(timer);
+      timer = setTimeout(() => {
+        if (ready || tries >= 6) return;
+        tries++;
+        retry.hidden = false;
+        frame.src = APP_URL + "&r=" + Date.now();  // 새 주소로 불러서 멈춘 연결을 버림
+        watch();
+      }, (25 + tries * 10) * 1000);  // 25초, 35초, 45초 … 점점 길게 기다림
+    }
+    addEventListener("message", (e) => {
+      if (e.data === "stock-ai-ready" && /\.streamlit\.app$/.test(new URL(e.origin).hostname)) {
+        ready = true; clearTimeout(timer); retry.hidden = true;
+      }
+    });
+    watch();
+
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
   </script>
 </body>
