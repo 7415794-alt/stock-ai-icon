@@ -10,17 +10,43 @@
   <link rel="icon" type="image/png" href="icon-192.png">
   <link rel="apple-touch-icon" href="icon-192.png">
   <style>
+    :root { --footer: 44px; --ad: 60px; }
     html, body { margin: 0; height: 100%; background: #ffffff; overflow: hidden; }
+    body { display: flex; flex-direction: column; }
+    /* 맨 위 가로 배너 광고 (가로로 길고 세로로 짧게) */
+    #ad { flex: 0 0 var(--ad); height: var(--ad); overflow: hidden; background: #f5f6f8;
+          border-bottom: 1px solid #e6e8ec; padding-top: env(safe-area-inset-top); }
+    #ad[hidden] { display: none; }
+    #app { flex: 1; min-height: 0; overflow: hidden; }
     /* iframe을 아래로 길게 늘려서, 맨 아래 'Built with Streamlit · Fullscreen' 줄을 화면 밖으로 잘라냄 */
     iframe { border: 0; width: 100%; height: calc(100% + var(--footer)); display: block; }
-    :root { --footer: 44px; }
   </style>
 </head>
 <body>
-  <!-- Streamlit Cloud 앱 주소. 바뀌면 여기만 고치세요. -->
-  <iframe src="https://stock-ai-7415794.streamlit.app/?embed=true"
-          title="주식 AI 확률 분석" allow="clipboard-write"></iframe>
+  <!-- 구글 애드센스: 승인 후 아래 두 값만 채우면 광고가 나옵니다. 비어 있으면 광고 칸이 숨겨집니다. -->
+  <div id="ad" hidden>
+    <ins class="adsbygoogle" style="display:block;width:100%;height:60px"></ins>
+  </div>
+  <div id="app">
+    <!-- Streamlit Cloud 앱 주소. 바뀌면 여기만 고치세요. -->
+    <iframe src="https://stock-ai-7415794.streamlit.app/?embed=true"
+            title="주식 AI 확률 분석" allow="clipboard-write"></iframe>
+  </div>
   <script>
+    const AD_CLIENT = "";  // 예: "ca-pub-1234567890123456"
+    const AD_SLOT = "";    // 예: "1234567890"
+    if (AD_CLIENT && AD_SLOT) {
+      const ins = document.querySelector(".adsbygoogle");
+      ins.dataset.adClient = AD_CLIENT;
+      ins.dataset.adSlot = AD_SLOT;
+      document.getElementById("ad").hidden = false;
+      const s = document.createElement("script");
+      s.async = true;
+      s.crossOrigin = "anonymous";
+      s.src = "https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=" + AD_CLIENT;
+      document.head.appendChild(s);
+      (window.adsbygoogle = window.adsbygoogle || []).push({});
+    }
     if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js");
   </script>
 </body>
