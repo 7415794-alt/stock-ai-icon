@@ -39,8 +39,7 @@
   </div>
   <div id="app">
     <!-- Streamlit Cloud 앱 주소. 바뀌면 여기만 고치세요. -->
-    <iframe id="frame" src="https://stock-ai-7415794.streamlit.app/?embed=true"
-            title="스톡시그널" allow="clipboard-write"></iframe>
+    <iframe id="frame" title="스톡시그널" allow="clipboard-write; web-share"></iframe>
   </div>
   <div id="ver">(1.0.0v)</div>
   <div id="retry" hidden>연결이 느려서 다시 불러오는 중…</div>
@@ -64,19 +63,57 @@
     const APP_URL = "https://stock-ai-7415794.streamlit.app/?embed=true";
     const frame = document.getElementById("frame"), retry = document.getElementById("retry");
     let tries = 0, ready = false, timer;
+
+    // 앱 주소 만들기: 공유 링크 종목(s, h) + 이 휴대폰에 저장된 관심 종목·최근 본 종목을 붙여서 보냄
+    function appUrl() {
+      const u = new URL(APP_URL), q = new URLSearchParams(location.search);
+      for (const k of ["s", "h"]) if (q.get(k)) u.searchParams.set(k, q.get(k));
+      try {
+        for (const k of ["fav", "recent"]) {
+          const v = localStorage.getItem("stock-ai-" + k);
+          if (v) u.searchParams.set(k, v);
+        }
+      } catch (e) {}
+      return u.toString();
+    }
+    frame.src = appUrl();
+
+    function toast(text) {
+      retry.textContent = text; retry.hidden = false;
+      setTimeout(() => { retry.hidden = true; retry.textContent = "연결이 느려서 다시 불러오는 중…"; }, 2500);
+    }
+    // 앱에서 '공유하기'를 누르면: 휴대폰 공유 창 → 안 되면 링크 복사
+    async function share(d) {
+      try { if (navigator.share) { await navigator.share({ title: d.title, text: d.text, url: d.url }); return; } }
+      catch (e) { if (e.name === "AbortError") return; }
+      try { await navigator.clipboard.writeText(d.text + " " + d.url); toast("링크를 복사했어요. 원하는 곳에 붙여 넣어 보내세요"); }
+      catch (e) { prompt("이 링크를 복사해서 보내 주세요", d.url); }
+    }
     function watch() {
       clearTimeout(timer);
       timer = setTimeout(() => {
         if (ready || tries >= 6) return;
         tries++;
         retry.hidden = false;
-        frame.src = APP_URL + "&r=" + Date.now();  // 새 주소로 불러서 멈춘 연결을 버림
+        frame.src = appUrl() + "&r=" + Date.now();  // 새 주소로 불러서 멈춘 연결을 버림
         watch();
       }, (25 + tries * 10) * 1000);  // 25초, 35초, 45초 … 점점 길게 기다림
     }
     addEventListener("message", (e) => {
-      if (e.data === "stock-ai-ready" && /\.streamlit\.app$/.test(new URL(e.origin).hostname)) {
+      let host = "";
+      try { host = new URL(e.origin).hostname; } catch (err) {}
+      if (!/\.streamlit\.app$/.test(host)) return;  // 우리 앱이 보낸 신호만 받음
+      const d = e.data;
+      if (d === "stock-ai-ready") {
         ready = true; clearTimeout(timer); retry.hidden = true;
+      } else if (d && d.type === "stock-ai-store") {  // 관심 종목·최근 본 종목을 이 휴대폰에 저장
+        try {
+          localStorage.setItem("stock-ai-fav", d.fav || "");
+          localStorage.setItem("stock-ai-recent", d.recent || "");
+        } catch (err) {}
+      } else if (d && d.type === "stock-ai-share") {
+        if (e.source) e.source.postMessage("stock-ai-share-ok", "*");
+        share(d);
       }
     });
     watch();
