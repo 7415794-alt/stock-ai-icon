@@ -69,7 +69,7 @@
       const u = new URL(APP_URL), q = new URLSearchParams(location.search);
       for (const k of ["s", "h"]) if (q.get(k)) u.searchParams.set(k, q.get(k));
       try {
-        for (const k of ["fav", "recent"]) {
+        for (const k of ["fav", "recent", "hold"]) {
           const v = localStorage.getItem("stock-ai-" + k);
           if (v) u.searchParams.set(k, v);
         }
@@ -110,6 +110,7 @@
         try {
           localStorage.setItem("stock-ai-fav", d.fav || "");
           localStorage.setItem("stock-ai-recent", d.recent || "");
+          if (typeof d.hold === "string") localStorage.setItem("stock-ai-hold", d.hold);  // 내 보유 종목
         } catch (err) {}
       } else if (d && d.type === "stock-ai-share") {
         if (e.source) e.source.postMessage("stock-ai-share-ok", "*");
