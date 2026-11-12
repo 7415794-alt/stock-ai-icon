@@ -6,7 +6,8 @@
   <title>스톡시그널 - 주식 AI 확률 분석</title>
   <meta name="description" content="종목을 검색하면 AI가 상승·하락 확률을 분석해 드립니다.">
   <meta name="theme-color" content="#030830">
-  <meta name="google-adsense-account" content="ca-pub-4318202692681153">
+  <!-- 앱 화면은 다른 사이트(Streamlit)를 iframe으로 띄우는 껍데기라 검색·광고 심사 대상에서 뺌 -->
+  <meta name="robots" content="noindex">
   <link rel="manifest" href="manifest.json">
   <link rel="icon" type="image/png" href="icon-192.png">
   <link rel="apple-touch-icon" href="icon-192.png">
@@ -33,7 +34,8 @@
   </style>
 </head>
 <body>
-  <!-- 구글 애드센스: 승인 후 아래 두 값만 채우면 광고가 나옵니다. 비어 있으면 광고 칸이 숨겨집니다. -->
+  <!-- 구글 애드센스: 이 화면은 내용이 iframe(다른 주소)이라 '게시자 콘텐츠가 없는 화면'으로 판정될 수 있음.
+       광고는 설명 글이 있는 홍보 사이트(stocksignals.kr)에만 넣고, 여기 AD_SLOT은 비워 두세요. -->
   <div id="ad" hidden>
     <ins class="adsbygoogle" style="display:block;width:100%;height:60px"></ins>
   </div>
